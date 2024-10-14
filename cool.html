@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random People Relationships</title>
+    <style>
+        body {
+            font-family: Raleway, sans-serif;
+            text-align: center;
+            background-color: black;
+            margin: 0; /* Remove default margin */
+            padding: 20px; /* Add some padding */
+        }
+
+        p {
+            color: white;
+        }
+        
+        .person-container {
+            display: inline-block;
+            margin: 10px; /* Reduced margin for better spacing on smaller screens */
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .person-container img {
+            width: 80px; /* Reduced image size for smaller screens */
+            height: 80px;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .highlight img {
+            border-color: rgb(0, 255, 204);
+            transform: scale(1.3); /* Scale the chosen person's image */
+            box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.5); /* Brighter and more pronounced glow */
+        }
+
+        .info {
+            font-size: 1.2em; /* Adjusted font size for better readability */
+            margin: 20px 0;
+            color: white; /* Ensure text is visible on black background */
+        }
+
+        /* Responsive Styles */
+        @media (min-width: 600px) {
+            .person-container img {
+                width: 100px; /* Normal size for larger screens */
+                height: 100px;
+            }
+            
+            .info {
+                font-size: 1.5em; /* Larger font for larger screens */
+            }
+        }
+
+        @media (min-width: 900px) {
+            .person-container {
+                margin: 20px; /* Larger margin for more spacing on large screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="people-container"></div>
+<div id="info" class="info"></div>
+
+<script>
+    // List of people and their attributes
+    const people = [
+        { name: "Hafez", imgSrc: "hafez.jpg" },
+        { name: "Ali", imgSrc: "ali.jpg" },
+        { name: "Kamyar", imgSrc: "kamyar.jpg" },
+        { name: "Arman", imgSrc: "arman.jpg" },
+        { name: "Tajik", imgSrc: "tajik.jfif"},
+        { name: "Uwulayi", imgSrc: "uwu.jfif"},
+        { name: "Ziaii", imgSrc: "ziaii.jfif"},
+        { name: "Abtin", imgSrc: "abtin.jfif"}
+    ];
+
+    // Function to randomize attributes with logical constraints
+    function randomizePeopleAttributes() {
+        const randomPerson = () => people[Math.floor(Math.random() * people.length)];
+
+        const pregnantPerson = randomPerson();
+        pregnantPerson.isPregnant = true;
+
+        let personWhoTold = randomPerson();
+        while (personWhoTold === pregnantPerson) {
+            personWhoTold = randomPerson();
+        }
+        pregnantPerson.whoTold = personWhoTold.name;
+
+        // Randomly select possible parents
+        let parent1 = randomPerson();
+        let parent2 = randomPerson();
+        while (parent1 === parent2 || parent1 === pregnantPerson || parent2 === pregnantPerson) {
+            parent1 = randomPerson();
+            parent2 = randomPerson();
+        }
+        pregnantPerson.possibleParents = [parent1.name, parent2.name];
+
+        // Select actual parent from all people except pregnant and jealous
+        let actualParent = randomPerson();
+        let jealousPerson = randomPerson();
+        while (jealousPerson === pregnantPerson || jealousPerson === actualParent) {
+            jealousPerson = randomPerson();
+        }
+
+        // Ensure the actual parent isn't the pregnant person or jealous person
+        while (actualParent === pregnantPerson || actualParent === jealousPerson) {
+            actualParent = randomPerson();
+        }
+
+        pregnantPerson.actualParent = actualParent.name;
+        jealousPerson.jealousOf = pregnantPerson.actualParent;
+
+        return { pregnantPerson, personWhoTold, parent1, parent2, jealousPerson };
+    }
+
+    // Function to display people images and reveal chosen attributes
+    function displayPeople(peopleData) {
+        const container = document.getElementById("people-container");
+        container.innerHTML = ""; // Clear previous content
+
+        people.forEach(person => {
+            const personDiv = document.createElement("div");
+            personDiv.classList.add("person-container");
+            personDiv.innerHTML = `
+                <img src="${person.imgSrc}" alt="${person.name}">
+                <p>${person.name}</p>
+            `;
+            container.appendChild(personDiv);
+        });
+
+        // Start revealing each category one by one with reduced delay
+        revealCategory("Pregnant", peopleData.pregnantPerson, 500);
+        setTimeout(() => revealCategory("Who Told", peopleData.personWhoTold, 2500), 2000);
+        setTimeout(() => revealCategory("Possible Daddy (1)", peopleData.parent1, 4500), 4000);
+        setTimeout(() => revealCategory("Possible Daddy (2)", peopleData.parent2, 6500), 6000);
+        setTimeout(() => revealCategory("Actual Daddy", peopleData.pregnantPerson.actualParent, 8500), 8000);
+        setTimeout(() => revealCategory("Jealous of Daddy", peopleData.jealousPerson, 10500), 10000);
+    }
+
+    // Function to reveal the category and highlight the person
+    function revealCategory(category, selected, delay) {
+        const infoContainer = document.getElementById("info");
+
+        // Highlight the selected person
+        setTimeout(() => {
+            highlightPerson(selected.name || selected);
+            infoContainer.innerText += `${category}: ${selected.name || selected}\n`; // Append instead of clearing
+        }, delay);
+    }
+
+    // Function to highlight a person by name and increase their image size
+    function highlightPerson(personName) {
+        const personContainers = document.querySelectorAll('.person-container');
+        personContainers.forEach(container => {
+            const img = container.querySelector('img');
+            if (img.alt === personName) {
+                container.classList.add("highlight"); // Apply scaling and highlight
+            } else {
+                container.classList.remove("highlight");
+            }
+        });
+    }
+
+    // Initialize and randomize people data
+    const randomizedData = randomizePeopleAttributes();
+    displayPeople(randomizedData);
+
+</script>
+
+</body>
+</html>
